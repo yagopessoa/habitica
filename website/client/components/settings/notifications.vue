@@ -2,41 +2,59 @@
 .row.standard-page
   .col-12
     h1 {{ $t('notifications') }}
-  .col-12
-    .checkbox
-      label
-        input(type='checkbox', v-model='user.preferences.pushNotifications.unsubscribeFromAll',
-        @change='set("pushNotifications", "unsubscribeFromAll")')
-        span {{ $t('unsubscribeAllPush') }}
-
-    br
-
-    .checkbox
-      label
-        input(type='checkbox', v-model='user.preferences.emailNotifications.unsubscribeFromAll',
-          @change='set("emailNotifications", "unsubscribeFromAll")')
-        span {{ $t('unsubscribeAllEmails') }}
-    small {{ $t('unsubscribeAllEmailsText') }}
-
   .col-8
-    table.table
-    tr
-      td
-      th
-        span {{ $t('email') }}
-      th
-        span {{ $t('push') }}
-    tr(v-for='notification in notificationsIds')
-      td
-        span {{ $t(notification) }}
-      td
-        input(type='checkbox', v-model='user.preferences.emailNotifications[notification]',
-          @change='set("emailNotifications", notification)')
-      td
-        input(type='checkbox', v-model='user.preferences.pushNotifications[notification]',
-          @change='set("pushNotifications", notification)')
-        hr
+    table.table.notifications-table
+      tr
+        th
+          span.title {{ $t('email') }}
+        th
+          span {{ $t('enabled') }}
+      tr
+        td
+          span {{ $t('receiveEmailNotifications') }}
+        td.check-cell
+          input(type='checkbox', v-model='user.preferences.emailNotifications.unsubscribeFromAll',
+          @change='set("emailNotifications", "unsubscribeFromAll")')
+      tr(v-for='notification in notificationsIds')
+        td
+          span {{ $t(notification) }}
+        td.check-cell
+          input(type='checkbox', v-model='user.preferences.emailNotifications[notification]',
+            @change='set("emailNotifications", notification)')
+
+    h2 {{ $t('mobile') }}
+    span {{ $t('mobileNotificationsSubscription') }}
+
+
 </template>
+
+<style lang="scss" scoped>
+  @import '~client/assets/scss/colors.scss';
+
+  .notifications-table {
+    td {
+      padding-top:16px;
+      padding-bottom: 16px;
+      vertical-align: middle;
+    }
+
+    span {
+      font-size: 16px;
+      font-weight: bold;
+      font-stretch: condensed;
+      line-height: 1.25;
+    }
+
+    .title {
+      font-size: 20px;
+    }
+
+    .check-cell {
+      text-align: center;
+    }
+  }
+
+</style>
 
 <script>
 import { mapState } from 'client/libs/store';

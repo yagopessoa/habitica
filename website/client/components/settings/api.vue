@@ -1,12 +1,14 @@
 <template lang="pug">
 .row.standard-page
-  .col-6
+  h1.col-12 {{ $t('siteData') }}
+  .col-8
     h2 {{ $t('API') }}
-    p {{ $t('APIText') }}
 
     .section
+      hr
       h6 {{ $t('userId') }}
       pre.prettyprint {{user.id}}
+      hr
       h6 {{ $t('APIToken') }}
       .d-flex.align-items-center.mb-3
         button.btn.btn-secondary(
@@ -15,28 +17,6 @@
         pre.prettyprint.ml-4.mb-0(v-if="showApiToken") {{apiToken}}
       p(v-html='$t("APITokenWarning", { hrefTechAssistanceEmail })')
 
-    .section
-      h3 {{ $t('thirdPartyApps') }}
-      ul
-        li
-          a(target='_blank' href='https://www.beeminder.com/habitica') {{ $t('beeminder') }}
-          br
-          | {{ $t('beeminderDesc') }}
-        li
-          a(target='_blank' href='https://chrome.google.com/webstore/detail/habitrpg-chat-client/hidkdfgonpoaiannijofifhjidbnilbb') {{ $t('chromeChatExtension') }}
-          br
-          | {{ $t('chromeChatExtensionDesc') }}
-        li
-          a(target='_blank' :href='`https://oldgods.net/habitica/habitrpg_user_data_display.html?uuid=` + user._id') {{ $t('dataTool') }}
-          br
-          | {{ $t('dataToolDesc') }}
-        li(v-html="$t('otherExtensions')")
-          br
-          | {{ $t('otherDesc') }}
-
-      hr
-
-  .col-6
     h2 {{ $t('webhooks') }}
     table.table.table-striped
       thead(v-if='user.webhooks.length')
@@ -61,6 +41,25 @@
                 input.form-control(type='url', v-model='newWebhook.url', :placeholder="$t('webhookURL')")
               .col-sm-2
                 button.btn.btn-sm.btn-primary(type='submit', @click='addWebhook(newWebhook.url)') {{ $t('add') }}
+
+  .col-4
+    h3 {{ $t('thirdPartyApps') }}
+    ul
+      li
+        a(target='_blank' href='https://www.beeminder.com/habitica') {{ $t('beeminder') }}
+        br
+        | {{ $t('beeminderDesc') }}
+      li
+        a(target='_blank' href='https://chrome.google.com/webstore/detail/habitrpg-chat-client/hidkdfgonpoaiannijofifhjidbnilbb') {{ $t('chromeChatExtension') }}
+        br
+        | {{ $t('chromeChatExtensionDesc') }}
+      li
+        a(target='_blank' :href='`https://oldgods.net/habitica/habitrpg_user_data_display.html?uuid=` + user._id') {{ $t('dataTool') }}
+        br
+        | {{ $t('dataToolDesc') }}
+      li(v-html="$t('otherExtensions')")
+        br
+        | {{ $t('otherDesc') }}
 </template>
 
 <style scoped>
