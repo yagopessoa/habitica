@@ -10,11 +10,9 @@
     b-modal(:hide-footer='true', :hide-header='true', :id='"buy-gems"', size='lg')
       .container-fluid.purple-gradient
         .gemfall
-          .row
-            h2.text-invert.mx-auto {{ $t('support') }}
-          .row
-            .logo.svg-icon.mx-auto(v-html="icons.logo")
-      .container-fluid
+          h2.text-invert.mx-auto {{ $t('support') }}
+          .logo.svg-icon.mx-auto(v-html="icons.logo")
+      .container-fluid.gem-modal-content
         .row
           .col-6.offset-3.nav
             .nav-item(@click='selectedPage = "subscribe"', :class="{active: selectedPage === 'subscribe'}") {{ $t('subscribe') }}
@@ -69,16 +67,18 @@
                 .divider
                 button.btn.btn-primary(@click='gemAmount = 84') {{gemAmount === 84 ? $t('selected') : '$20.00'}}
           .row.text-center
-            h2.mx-auto.text-payment {{ $t('choosePaymentMethod') }}
-          .card-deck
-            .card.text-center.payment-method(@click='showStripe({})')
+            h2.mx-auto.text-payment.active {{ $t('choosePaymentMethod') }}
+          .card-deck.payments-deck
+            .card.active.payments-card.text-center.payment-method(@click='showStripe({})')
               .card-body
                 .mx-auto(v-html='icons.creditCard', style='"height: 56px; width: 159px; margin-top: 1em;"')
-            .card.text-center.payment-method
+            .card.active.payments-card.text-center.payment-method
               a.card-body.paypal(:href='paypalCheckoutLink', target='_blank')
+                .helper
                 img(src='~assets/images/paypal.png')
-            .card.text-center.payment-method(@click="amazonPaymentsInit({type: 'single'})")
+            .card.active.payments-card.text-center.payment-method(@click="amazonPaymentsInit({type: 'single'})")
               .card-body.amazon
+                .helper
                 img(src='~assets/images/amazon-payments.png')
           .row.text-center
             .svg-icon.mx-auto(v-html='icons.heart', style='"height: 24px; width: 24px;"')
@@ -104,7 +104,7 @@
                 +featureBullet("{{ $t('subscriptionBenefit4') }}")
                 +featureBullet("{{ $t('subscriptionBenefit5') }}")
                 +featureBullet("{{ $t('subscriptionBenefit6') }}")
-            .card-deck
+            .card-deck.subscription-deck
               .card.text-center(:class='{active: subscriptionPlan === "basic_earned"}')
                 .card-body
                   .subscription-price
@@ -139,6 +139,8 @@
                   p.benefits(v-markdown='$t("receiveMysticHourglasses", {amount:2})')
                   button.btn.btn-primary(@click='subscriptionPlan = "basic_6mo"') {{ subscriptionPlan === "basic_6mo" ? $t('selected') : $t('select') }}
               .card.text-center(:class='{active: subscriptionPlan === "basic_12mo"}')
+                .card-discount
+                  span {{ $t('save20Percent') }}
                 .card-body
                   .subscription-price
                     span.superscript $
@@ -149,19 +151,21 @@
                   p.benefits(v-markdown='$t("earnGemsMonthly", {cap:45})')
                   p.benefits(v-markdown='$t("receiveMysticHourglasses", {amount:4})')
                   button.btn.btn-primary(@click='subscriptionPlan = "basic_12mo"') {{ subscriptionPlan === "basic_12mo" ? $t('selected') : $t('select') }}
-            .row.text-center(v-if='subscriptionPlan')
-              h2.mx-auto.text-payment {{ $t('choosePaymentMethod') }}
+            .row.text-center
+              h2.mx-auto.text-payment(:class='{active: subscriptionPlan}') {{ $t('choosePaymentMethod') }}
             .row.text-center
               a.mx-auto {{ $t('haveCouponCode') }}
-            .card-deck(v-if='subscriptionPlan')
-              .card.text-center.payment-method
+            .card-deck.payments-deck
+              .card.text-center.payment-method(:class='{active: subscriptionPlan}')
                 .card-body(@click='showStripe({subscription: subscriptionPlan})')
                   .mx-auto(v-html='icons.creditCard', style='"height: 56px; width: 159px; margin-top: 1em;"')
-              .card.text-center.payment-method
+              .card.text-center.payment-method(:class='{active: subscriptionPlan}')
                 a.card-body.paypal(:href='paypalSubscriptionLink', target='_blank')
+                  .helper
                   img(src='~assets/images/paypal.png')
-              .card.text-center.payment-method
+              .card.text-center.payment-method(:class='{active: subscriptionPlan}')
                 .card-body.amazon(@click="amazonPaymentsInit({type: 'subscription', subscription: subscriptionPlan})")
+                  .helper
                   img(src='~assets/images/amazon-payments.png')
             .row.text-center
               .svg-icon.mx-auto(v-html='icons.heart', style='"height: 24px; width: 24px;"')
@@ -173,15 +177,52 @@
   #buy-gems__BV_body_ {
     padding: 0;
   }
+
+  #buy-gems .modal-body {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  #buy-gems .modal-content {
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+  }
 </style>
 
 <style lang="scss" scoped>
+  @import '~client/assets/scss/colors.scss';
+
+  .gem-modal-content {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  #buy-gems .svg-icon.check {
+    width: 14px;
+    margin: 9px auto auto;
+  }
+
+  .card-discount {
+    position: absolute;
+    font-size: 12px;
+    color: white;
+    top: -9px;
+    width: 100%
+  }
+
+  .card-discount span {
+    background-color: $purple-200;
+    border-radius: 12px;
+    padding: 4px 12px;
+    margin: auto;
+  }
+
   a.mx-auto {
     color: #2995cd;
   }
 
   button {
-    margin-bottom: 1em;
+    padding: 3px 22px;
   }
 
   p {
@@ -206,10 +247,15 @@
   .gem-deck {
     align-items: center;
     justify-content: center;
+    margin: 2.5em 0 1em;
+  }
+
+  .subscription-deck {
+    margin: 2.5em 0 1em;
   }
 
   .card {
-    margin: 1em;
+    margin: 0.2em;
     border-radius: 2px;
     box-shadow: 0 2px 2px 0 rgba(26, 24, 29, 0.16), 0 1px 4px 0 rgba(26, 24, 29, 0.12);
   }
@@ -244,7 +290,13 @@
 
   .gemfall {
     background: url(~assets/images/gemfall.png) center repeat-y;
-    height: 14em;
+    height: 15rem;
+    padding-top: 72px;
+  }
+
+  .gemfall h2 {
+    margin: 0 0 14px;
+    text-align: center;
   }
 
   .logo {
@@ -274,12 +326,44 @@
     cursor: pointer;
   }
 
+  .payments-deck {
+    margin-top: 0.2em;
+    margin-bottom: 1em;
+  }
+
   .payment-method {
     background-color: #e1e0e3;
+    margin: 1em;
+    box-shadow: none;
+    border: none;
+  }
+
+  .payment-method.active {
+    background-color: white;
+    border: none;
+    box-shadow: 0 2px 2px 0 rgba(26, 24, 29, 0.16), 0 1px 4px 0 rgba(26, 24, 29, 0.12);
   }
 
   .payment-method:hover {
     cursor: pointer;
+  }
+
+  .payment-method .card-body {
+    padding: 1rem;
+  }
+
+  .payment-method a, .payment-method .card-body.amazon{
+    height: 100%;
+  }
+
+  .payment-method .helper {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+  }
+
+  .payment-method img {
+    vertical-align: middle;
   }
 
   .paypal {
@@ -287,8 +371,10 @@
   }
 
   .purple-gradient {
-    background-image: linear-gradient(74deg, #4f2a93, #6133b4);
-    height: 14em;
+    background-image: linear-gradient(274deg, #4f2a93, #6133b4);
+    border-top-left-radius: 0.3rem;
+    border-top-right-radius: 0.3rem;
+    height: 15rem;
   }
 
   .spacer {
@@ -333,8 +419,12 @@
   .text-payment {
     color: #4e4a57;
     font-size: 24px;
-    margin: 1em;
+    margin: 1em 1em 0.2em;
     opacity: 0.64;
+  }
+
+  .text-payment.active {
+    opacity: 1;
   }
 </style>
 
