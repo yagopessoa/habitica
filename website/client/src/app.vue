@@ -297,7 +297,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(['isUserLoggedIn', 'browserTimezoneOffset', 'isUserLoaded']),
+    ...mapState(['isUserLoggedIn', 'browserTimezoneUtcOffset', 'isUserLoaded']),
     ...mapState({ user: 'user.data' }),
     isStaticPage () {
       return this.$route.meta.requiresLogin === false;
@@ -492,9 +492,10 @@ export default {
         this.hideLoadingScreen();
 
         // Adjust the timezone offset
-        if (this.user.preferences.timezoneOffset !== this.browserTimezoneOffset) {
+        const browserTimezoneOffset = -this.browserTimezoneUtcOffset;
+        if (this.user.preferences.timezoneOffset !== browserTimezoneOffset) {
           this.$store.dispatch('user:set', {
-            'preferences.timezoneOffset': this.browserTimezoneOffset,
+            'preferences.timezoneOffset': browserTimezoneOffset,
           });
         }
 
