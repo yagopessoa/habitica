@@ -99,7 +99,12 @@ export async function createTasks (req, res, options = {}) {
       if (taskData.requiresApproval) {
         newTask.group.approval.required = true;
       }
-      newTask.group.sharedCompletion = taskData.sharedCompletion || SHARED_COMPLETION.default;
+      if (taskData.claimable) {
+        newTask.group.claimable = true;
+      }
+      if (taskType === 'todo') {
+        newTask.group.sharedCompletion = taskData.sharedCompletion || SHARED_COMPLETION.single;
+      }
       newTask.group.managerNotes = taskData.managerNotes || '';
     } else {
       newTask.userId = user._id;

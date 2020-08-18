@@ -282,6 +282,8 @@ api.unassignTask = {
       throw new NotAuthorized(res.t('onlyGroupTasksCanBeAssigned'));
     }
 
+    console.log(assignedUser.auth.local.username);
+
     const fields = requiredGroupFields.concat(' managers');
     const group = await Group.getGroup({ user, groupId: task.group.id, fields });
     if (!group) throw new NotFound(res.t('groupNotFound'));

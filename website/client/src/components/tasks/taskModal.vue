@@ -474,6 +474,17 @@
             <label
               v-once
               class="mb-0 flex"
+            >{{ $t('canBeClaimed') }}</label>
+            <toggle-switch
+              class="d-inline-block"
+              :checked="claimable"
+              @change="updateClaimable"
+            />
+          </div>
+          <div class="form-group flex-group mt-3 mb-4">
+            <label
+              v-once
+              class="mb-0 flex"
             >{{ $t('approvalRequired') }}</label>
             <toggle-switch
               class="d-inline-block"
@@ -1097,6 +1108,7 @@ export default {
         grip: gripIcon,
       }),
       requiresApproval: false, // We can't set task.group fields so we use this field to toggle
+      claimable: false,
       sharedCompletion: 'singleCompletion',
       managerNotes: '',
       members: [],
@@ -1248,11 +1260,11 @@ export default {
       createTag: 'tags:createTag',
     }),
     async syncTask () {
-      if (this.task && this.task.group && this.task.group.managerNotes) {
+      if (this.groupId && this.task.group) {
         this.managerNotes = this.task.group.managerNotes;
-      }
-      if (this.groupId && this.task.group && this.task.group.approval) {
-        this.requiresApproval = this.task.group.approval.required;
+        this.requiresApproval = (this.task.group.approval && this.task.group.approval.required)
+          || false;
+        this.claimable = this.task.group.claimable || false;
       }
 
       if (this.groupId) {
@@ -1346,6 +1358,8 @@ export default {
         this.task.group.sharedCompletion = this.sharedCompletion;
         this.task.managerNotes = this.managerNotes;
         this.task.group.managerNotes = this.managerNotes;
+        this.task.claimable = this.claimable;
+        this.task.group.claimable = this.claimable;
       }
 
       if (this.task.type === 'reward' && this.task.value === '') {
@@ -1401,6 +1415,11 @@ export default {
       let truthy = true;
       if (!newValue) truthy = false; // This return undefined instad of false
       this.requiresApproval = truthy;
+    },
+    updateClaimable (newValue) {
+      let truthy = true;
+      if (!newValue) truthy = false; // This return undefined instad of false
+      this.claimable = truthy;
     },
     async toggleAssignment (memberId) {
       if (this.purpose === 'create') {

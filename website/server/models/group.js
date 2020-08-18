@@ -1589,6 +1589,7 @@ schema.methods.unlinkTask = async function groupUnlinkTask (
   };
 
   const assignedUserIndex = unlinkingTask.group.assignedUsers.indexOf(user._id);
+  if (assignedUserIndex === -1) throw new BadRequest('Cannot unassign user who is not assigned.');
   unlinkingTask.group.assignedUsers.splice(assignedUserIndex, 1);
 
   if (keep === 'keep-all') {

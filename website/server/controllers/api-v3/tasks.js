@@ -674,6 +674,10 @@ api.updateTask = {
     if (sanitizedObj.requiresApproval) {
       task.group.approval.required = true;
     }
+    task.group.claimable = false;
+    if (sanitizedObj.claimable) {
+      task.group.claimable = true;
+    }
     if (sanitizedObj.sharedCompletion) {
       task.group.sharedCompletion = sanitizedObj.sharedCompletion;
     }

@@ -267,7 +267,10 @@
   "assignedToYouAndMembers": "Assigned to you and <strong><%- userCount %> members</strong>",
   "youAreAssigned": "Assigned to you",
   "taskIsUnassigned": "This task is unassigned",
+  "unassign": "Unassign",
   "unassigned": "Unassigned",
+  "youClaimedTask": "You claimed this task",
+  "taskIsUnclaimed": "This task is unclaimed",
   "chooseTeamMember": "Choose a team member",
   "confirmClaim": "Are you sure you want to claim this task?",
   "confirmUnClaim": "Are you sure you want to unclaim this task?",
@@ -505,5 +508,6 @@
   "managerNotes": "Manager's Notes",
   "assignedDateOnly": "Assigned on <strong><%- date %></strong>",
   "assignedDateAndUser": "Assigned by <strong>@<%- username %></strong> on <strong><%- date %></strong>",
-  "claimRewards": "Claim Rewards"
+  "claimRewards": "Claim Rewards",
+  "canBeClaimed": "Can be claimed"
 }
