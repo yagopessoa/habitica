@@ -1439,6 +1439,10 @@ export default {
           userId: memberId,
         });
       }
+
+      if (this.assignedMembers.length > 0) {
+        this.claimable = false;
+      }
     },
     focusInput () {
       this.$refs.inputToFocus.focus();

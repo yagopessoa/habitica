@@ -22,11 +22,10 @@ const types = Tasks.tasksTypes.map(type => `${type}s`);
 types.push('completedTodos', '_allCompletedTodos');
 
 // @TODO abstract this snipped (also see api-v3/tasks.js)
-function canNotEditTasks (group, user, assignedUserId) {
+function canNotEditTasks (group, user) {
   const isNotGroupLeader = group.leader !== user._id;
   const isManager = Boolean(group.managers[user._id]);
-  const userIsAssigningToSelf = Boolean(assignedUserId && user._id === assignedUserId);
-  return isNotGroupLeader && !isManager && !userIsAssigningToSelf;
+  return isNotGroupLeader && !isManager;
 }
 
 const api = {};
@@ -211,26 +210,13 @@ api.assignTask = {
     const group = await Group.getGroup({ user, groupId: task.group.id, fields: groupFields });
     if (!group) throw new NotFound(res.t('groupNotFound'));
 
-    if (canNotEditTasks(group, user, assignedUserId)) throw new NotAuthorized(res.t('onlyGroupLeaderCanEditTasks'));
+    if (canNotEditTasks(group, user)) throw new NotAuthorized(res.t('onlyGroupLeaderCanEditTasks'));
 
     const promises = [];
     const taskText = task.text;
     const userName = `@${user.auth.local.username}`;
 
-    if (user._id === assignedUserId) {
-      const managerIds = Object.keys(group.managers);
-      managerIds.push(group.leader);
-      const managers = await User.find({ _id: managerIds }, 'notifications preferences').exec();
-      managers.forEach(manager => {
-        if (manager._id === user._id) return;
-        manager.addNotification('GROUP_TASK_CLAIMED', {
-          message: res.t('taskClaimed', { userName, taskText }, manager.preferences.language),
-          groupId: group._id,
-          taskId: task._id,
-        });
-        promises.push(manager.save());
-      });
-    } else {
+    if (user._id !== assignedUserId) {
       assignedUser.addNotification('GROUP_TASK_ASSIGNED', {
         message: res.t('youHaveBeenAssignedTask', { managerName: userName, taskText }),
         taskId: task._id,
@@ -282,13 +268,11 @@ api.unassignTask = {
       throw new NotAuthorized(res.t('onlyGroupTasksCanBeAssigned'));
     }
 
-    console.log(assignedUser.auth.local.username);
-
     const fields = requiredGroupFields.concat(' managers');
     const group = await Group.getGroup({ user, groupId: task.group.id, fields });
     if (!group) throw new NotFound(res.t('groupNotFound'));
 
-    if (canNotEditTasks(group, user, assignedUserId)) throw new NotAuthorized(res.t('onlyGroupLeaderCanEditTasks'));
+    if (canNotEditTasks(group, user)) throw new NotAuthorized(res.t('onlyGroupLeaderCanEditTasks'));
 
     await group.unlinkTask(task, assignedUser);
 
@@ -298,6 +282,113 @@ api.unassignTask = {
       assignedUser.notifications.splice(notificationIndex, 1);
       await assignedUser.save();
     }
+
+    res.respond(200, task);
+  },
+};
+
+/**
+ * @api {post} /api/v3/tasks/:taskId/claim Claim an open group task
+ * @apiDescription Allows a user to claim a group task
+ * @apiName ClaimTask
+ * @apiGroup Task
+ *
+ * @apiParam (Path) {UUID} taskId The id of the task to claim
+ *
+ * @apiSuccess data The claimed task
+ */
+api.claimTask = {
+  method: 'POST',
+  url: '/tasks/:taskId/claim',
+  middlewares: [authWithHeaders()],
+  async handler (req, res) {
+    req.checkParams('taskId', apiError('taskIdRequired')).notEmpty().isUUID();
+
+    const reqValidationErrors = req.validationErrors();
+    if (reqValidationErrors) throw reqValidationErrors;
+
+    const { user } = res.locals;
+    const { taskId } = req.params;
+    const task = await Tasks.Task.findByIdOrAlias(taskId, user._id);
+
+    if (!task) {
+      throw new NotFound(res.t('taskNotFound'));
+    }
+
+    if (!task.group.id) {
+      throw new BadRequest('Only group tasks can be claimed.');
+    }
+
+    const groupFields = `${requiredGroupFields} managers`;
+    const group = await Group.getGroup({ user, groupId: task.group.id, fields: groupFields });
+    if (!group) throw new NotFound(res.t('groupNotFound'));
+
+    if (!task.group.claimable) throw new BadRequest('Task has not been marked available for claiming.');
+
+    const promises = [];
+    const taskText = task.text;
+    const userName = `@${user.auth.local.username}`;
+
+    const managerIds = Object.keys(group.managers);
+    managerIds.push(group.leader);
+    const managers = await User.find({ _id: managerIds }, 'notifications preferences').exec();
+    managers.forEach(manager => {
+      if (manager._id === user._id) return;
+      manager.addNotification('GROUP_TASK_CLAIMED', {
+        message: res.t('taskClaimed', { userName, taskText }, manager.preferences.language),
+        groupId: group._id,
+        taskId: task._id,
+      });
+      promises.push(manager.save());
+    });
+
+    promises.push(group.syncTask(task, user));
+    promises.push(group.save());
+    await Promise.all(promises);
+
+    res.respond(200, task);
+  },
+};
+
+/**
+ * @api {post} /api/v3/tasks/:taskId/unclaim Relinquish claim on a group task
+ * @apiDescription Removes user's claim from a group task
+ * @apiName UnclaimTask
+ * @apiGroup Task
+ *
+ * @apiParam (Path) {UUID} taskId The id of the original group task
+ *
+ * @apiSuccess data The unclaimed task
+ */
+api.unclaimTask = {
+  method: 'POST',
+  url: '/tasks/:taskId/unclaim',
+  middlewares: [authWithHeaders()],
+  async handler (req, res) {
+    req.checkParams('taskId', apiError('taskIdRequired')).notEmpty().isUUID();
+
+    const reqValidationErrors = req.validationErrors();
+    if (reqValidationErrors) throw reqValidationErrors;
+
+    const { user } = res.locals;
+
+    const { taskId } = req.params;
+    const task = await Tasks.Task.findByIdOrAlias(taskId, user._id);
+
+    if (!task) {
+      throw new NotFound(res.t('taskNotFound'));
+    }
+
+    if (!task.group.id) {
+      throw new BadRequest('Only group tasks can be claimed.');
+    }
+
+    const group = await Group.getGroup({ user, groupId: task.group.id, requiredGroupFields });
+    if (!group) throw new NotFound(res.t('groupNotFound'));
+
+    if (task.group.claimedUser !== user._id) throw new BadRequest('You have not claimed this task.');
+
+    await group.unlinkTask(task, user);
 
     res.respond(200, task);
   },

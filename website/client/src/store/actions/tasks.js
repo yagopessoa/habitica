@@ -179,6 +179,16 @@ export async function unassignTask (store, payload) {
   return response.data.data;
 }
 
+export async function claimTask (store, payload) {
+  const response = await axios.post(`/api/v4/tasks/${payload.taskId}/claim`);
+  return response.data.data;
+}
+
+export async function unclaimTask (store, payload) {
+  const response = await axios.post(`/api/v4/tasks/${payload.taskId}/unclaim`);
+  return response.data.data;
+}
+
 export async function needsWork (store, payload) {
   const response = await axios.post(`/api/v4/tasks/${payload.taskId}/needs-work/${payload.userId}`);
   return response.data.data;

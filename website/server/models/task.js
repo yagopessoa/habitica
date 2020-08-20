@@ -148,7 +148,8 @@ export const TaskSchema = new Schema({
     },
     managerNotes: { $type: String },
     claimable: { $type: Boolean },
-    claimedUser: { $type: String, ref: 'User', validate: [v => validator.isUUID(v), 'Invalid uuid for team claiming user.'] },
+    claimedDate: { $type: Date },
+    claimedUser: { $type: String },
   },
 
   reminders: [reminderSchema],

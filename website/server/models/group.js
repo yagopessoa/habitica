@@ -1508,8 +1508,10 @@ schema.methods.syncTask = async function groupSyncTask (taskToSync, user, assign
   const group = this;
   const toSave = [];
 
-  if (taskToSync.group.assignedUsers.indexOf(user._id) === -1) {
+  if (assigningUser && taskToSync.group.assignedUsers.indexOf(user._id) === -1) {
     taskToSync.group.assignedUsers.push(user._id);
+  } else if (!assigningUser) {
+    taskToSync.group.claimedUser = user._id;
   }
 
   // Sync tags
@@ -1543,7 +1545,11 @@ schema.methods.syncTask = async function groupSyncTask (taskToSync, user, assign
     matchingTask.group.id = taskToSync.group.id;
     matchingTask.userId = user._id;
     matchingTask.group.taskId = taskToSync._id;
-    matchingTask.group.assignedDate = new Date();
+    if (assigningUser) {
+      matchingTask.group.assignedDate = new Date();
+    } else {
+      matchingTask.group.claimedDate = new Date();
+    }
     user.tasksOrder[`${taskToSync.type}s`].unshift(matchingTask._id);
   } else {
     _.merge(matchingTask, syncableAttrs(taskToSync));
@@ -1554,6 +1560,7 @@ schema.methods.syncTask = async function groupSyncTask (taskToSync, user, assign
 
   matchingTask.group.approval.required = taskToSync.group.approval.required;
   matchingTask.group.assignedUsers = taskToSync.group.assignedUsers;
+  matchingTask.group.claimedUser = taskToSync.group.claimedUser;
   matchingTask.group.sharedCompletion = taskToSync.group.sharedCompletion;
   matchingTask.group.managerNotes = taskToSync.group.managerNotes;
   if (assigningUser && user._id !== assigningUser._id) {
@@ -1589,8 +1596,13 @@ schema.methods.unlinkTask = async function groupUnlinkTask (
   };
 
   const assignedUserIndex = unlinkingTask.group.assignedUsers.indexOf(user._id);
-  if (assignedUserIndex === -1) throw new BadRequest('Cannot unassign user who is not assigned.');
-  unlinkingTask.group.assignedUsers.splice(assignedUserIndex, 1);
+  if (assignedUserIndex !== -1) {
+    unlinkingTask.group.assignedUsers.splice(assignedUserIndex, 1);
+  } else if (unlinkingTask.group.claimedUser === user._id) {
+    unlinkingTask.group.claimedUser = '';
+  } else {
+    throw new BadRequest('Cannot unassign user who is not assigned.');
+  }
 
   if (keep === 'keep-all') {
     await Tasks.Task.update(findQuery, {

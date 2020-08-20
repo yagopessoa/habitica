@@ -20,7 +20,8 @@
         >{{ $t('unassign') }}</a>
       </div>
       <div
-        v-if="!userIsAssigned && !task.completed && task.group.claimable"
+        v-if="task.group.claimable && !task.completed
+          && !task.group.claimedUser && task.group.assignedUsers.length === 0"
         class="ml-auto mr-2"
       >
         <a
@@ -29,12 +30,13 @@
         >{{ $t('claim') }}</a>
       </div>
       <div
-        v-if="userHasClaimed && !approvalRequested && !task.completed"
+        v-if="(userHasClaimed || userIsManager)
+          && task.group.claimedUser && !approvalRequested && !task.completed"
         class="ml-auto mr-2"
       >
         <a
           class="unclaim-color"
-          @click="unassign()"
+          @click="unclaim()"
         >{{ $t('removeClaim') }}</a>
       </div>
     </div>
@@ -171,11 +173,19 @@ export default {
         taskId = this.task.group.taskId;
       }
 
-      await this.$store.dispatch('tasks:assignTask', {
-        taskId,
-        userId: this.user._id,
-      });
-      this.task.group.assignedUsers.push(this.user._id);
+      await this.$store.dispatch('tasks:claimTask', { taskId });
+      this.task.group.claimedUser = this.user._id;
+      this.sync();
+    },
+    async unclaim () {
+      let taskId = this.task._id;
+      // If we are on the user task
+      if (this.task.userId) {
+        taskId = this.task.group.taskId;
+      }
+
+      await this.$store.dispatch('tasks:unclaimTask', { taskId });
+      this.task.group.claimedUser = null;
       this.sync();
     },
     async unassign () { // Only available if there is just a single assigned user
