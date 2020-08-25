@@ -1508,9 +1508,15 @@ schema.methods.syncTask = async function groupSyncTask (taskToSync, user, assign
   const group = this;
   const toSave = [];
 
-  if (assigningUser && taskToSync.group.assignedUsers.indexOf(user._id) === -1) {
-    taskToSync.group.assignedUsers.push(user._id);
-  } else if (!assigningUser) {
+  if (assigningUser) {
+    if (taskToSync.group.assignedUsers.indexOf(user._id) === -1) {
+      taskToSync.group.assignedUsers.push(user._id);
+    }
+    taskToSync.group.claimable = false;
+    if (taskToSync.claimedUser) {
+      await group.unlinkTask(taskToSync, user);
+    }
+  } else {
     taskToSync.group.claimedUser = user._id;
   }
 

@@ -319,11 +319,13 @@ api.claimTask = {
       throw new BadRequest('Only group tasks can be claimed.');
     }
 
+    if (!task.group.claimable) throw new BadRequest('Task has not been marked available for claiming.');
+
+    if (task.group.claimedUser) throw new BadRequest('Task already claimed.');
+
     const groupFields = `${requiredGroupFields} managers`;
     const group = await Group.getGroup({ user, groupId: task.group.id, fields: groupFields });
     if (!group) throw new NotFound(res.t('groupNotFound'));
-
-    if (!task.group.claimable) throw new BadRequest('Task has not been marked available for claiming.');
 
     const promises = [];
     const taskText = task.text;

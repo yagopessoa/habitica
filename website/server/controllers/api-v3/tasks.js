@@ -665,11 +665,6 @@ api.updateTask = {
 
     _.assign(task, sanitizedObj);
 
-    // console.log(task.modifiedPaths(), task.toObject().repeat === tep)
-    // repeat is always among modifiedPaths because mongoose changes
-    // the other of the keys when using .toObject()
-    // see https://github.com/Automattic/mongoose/issues/2749
-
     task.group.approval.required = false;
     if (sanitizedObj.requiresApproval) {
       task.group.approval.required = true;
@@ -710,6 +705,11 @@ api.updateTask = {
       });
 
       await group.updateTask(savedTask, { updateCheckListItems });
+
+      if (task.group.claimable) {
+        const assignedUsers = await User.find({ _id: { $in: task.group.assignedUsers } }, '_id tasksOrder').exec();
+        await Promise.all(assignedUsers.map(assignedUser => group.unlinkTask(task, assignedUser)));
+      }
     }
 
     res.respond(200, savedTask);
