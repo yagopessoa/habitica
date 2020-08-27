@@ -1382,7 +1382,10 @@ schema.methods.leave = async function leaveGroup (user, keep = 'keep-all', keepC
   const assignedTasks = await Tasks.Task.find({
     'group.id': group._id,
     userId: { $exists: false },
-    'group.assignedUsers': user._id,
+    $or: [
+      { 'group.assignedUsers': user._id },
+      { 'group.claimedUser': user._id },
+    ],
   }).exec();
   const assignedTasksToRemoveUserFrom = assignedTasks
     .map(task => this.unlinkTask(task, user, keep, false));

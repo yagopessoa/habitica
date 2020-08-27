@@ -3,10 +3,9 @@
     <div
       class="task transition"
       :class="[{
-                 'groupTask': task.group.id,
-                 'task-not-editable': !teamManagerAccess},
-               `type_${task.type}`
-      ]"
+        'groupTask': task.group.id,
+        'task-not-editable': !teamManagerAccess
+      }, `type_${task.type}`]"
       @click="castEnd($event, task)"
     >
       <approval-header
@@ -16,8 +15,7 @@
       />
       <div
         class="d-flex"
-        :class="{'task-not-scoreable': isUser !== true || task.group.approval.requested
-          && !(task.group.approval.approved && task.type === 'habit')}"
+        :class="{'task-not-scoreable': taskNotScoreable}"
       >
         <!-- Habits left side control-->
         <div
@@ -31,16 +29,15 @@
           <div
             class="task-control habit-control"
             :class="[{
-              'habit-control-positive-enabled': task.up && isUser,
-              'habit-control-positive-disabled': !task.up && isUser,
-              'task-not-scoreable': isUser !== true
-                || (task.group.approval.requested && !task.group.approval.approved),
+              'habit-control-positive-enabled': task.up && !showTaskLockIcon,
+              'habit-control-positive-disabled': !task.up && !showTaskLockIcon,
+              'task-not-scoreable': taskNotScoreable,
             }, controlClass.up.inner]"
             @click="(isUser && task.up && (!task.group.approval.requested
               || task.group.approval.approved)) ? score('up') : null"
           >
             <div
-              v-if="!isUser"
+              v-if="showTaskLockIcon"
               class="svg-icon lock"
               :class="task.up ? controlClass.up.icon : 'positive'"
               v-html="icons.lock"
@@ -67,7 +64,7 @@
               ? score(task.completed ? 'down' : 'up' ) : null"
           >
             <div
-              v-if="!isUser"
+              v-if="showTaskLockIcon"
               class="svg-icon lock"
               :class="controlClass.icon"
               v-html="icons.lock"
@@ -323,16 +320,15 @@
           <div
             class="task-control habit-control"
             :class="[{
-              'habit-control-negative-enabled': task.down && isUser,
-              'habit-control-negative-disabled': !task.down && isUser,
-              'task-not-scoreable': isUser !== true
-                || (task.group.approval.requested && !task.group.approval.approved),
+              'habit-control-negative-enabled': task.down && !showTaskLockIcon,
+              'habit-control-negative-disabled': !task.down && !showTaskLockIcon,
+              'task-not-scoreable': taskNotScoreable,
             }, controlClass.down.inner]"
             @click="(isUser && task.down && (!task.group.approval.requested
               || task.group.approval.approved)) ? score('down') : null"
           >
             <div
-              v-if="!isUser"
+              v-if="showTaskLockIcon"
               class="svg-icon lock"
               :class="task.down ? controlClass.down.icon : 'negative'"
               v-html="icons.lock"
@@ -970,6 +966,18 @@ export default {
     displayNotes () {
       if (this.isGroupTask && !this.isUser) return this.task.group.managerNotes;
       return this.task.notes;
+    },
+    showTaskLockIcon () {
+      if (this.isUser || !this.isGroupTask) return false;
+      if (this.task.group.claimedUser === this.user._id) return false;
+      if (this.task.group.assignedUsers.indexOf(this.user._id) !== -1) return false;
+      return true;
+    },
+    taskNotScoreable () {
+      if (this.showTaskLockIcon) return true;
+      if (this.task.group.approval.requested
+        && !(this.task.group.approval.approved && this.task.type === 'habit')) return true;
+      return false;
     },
   },
   methods: {
