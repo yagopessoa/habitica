@@ -8,6 +8,7 @@ import { removeFromArray } from '../../libs/collectionManipulators';
 import * as Tasks from '../../models/task';
 import { model as Challenge } from '../../models/challenge';
 import { model as Group } from '../../models/group';
+import { model as User } from '../../models/user';
 import {
   NotFound,
   NotAuthorized,

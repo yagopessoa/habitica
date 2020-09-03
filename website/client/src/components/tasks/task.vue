@@ -33,8 +33,7 @@
               'habit-control-positive-disabled': !task.up && !showTaskLockIcon,
               'task-not-scoreable': taskNotScoreable,
             }, controlClass.up.inner]"
-            @click="(isUser && task.up && (!task.group.approval.requested
-              || task.group.approval.approved)) ? score('up') : null"
+            @click="score('up')"
           >
             <div
               v-if="showTaskLockIcon"
@@ -60,8 +59,7 @@
           <div
             class="task-control daily-todo-control"
             :class="controlClass.inner"
-            @click="isUser && !task.group.approval.requested
-              ? score(task.completed ? 'down' : 'up' ) : null"
+            @click="score(task.completed ? 'down' : 'up' )"
           >
             <div
               v-if="showTaskLockIcon"
@@ -324,8 +322,7 @@
               'habit-control-negative-disabled': !task.down && !showTaskLockIcon,
               'task-not-scoreable': taskNotScoreable,
             }, controlClass.down.inner]"
-            @click="(isUser && task.down && (!task.group.approval.requested
-              || task.group.approval.approved)) ? score('down') : null"
+            @click="score('down')"
           >
             <div
               v-if="showTaskLockIcon"
@@ -345,7 +342,7 @@
           v-if="task.type === 'reward'"
           class="right-control d-flex align-items-center justify-content-center reward-control"
           :class="controlClass.bg"
-          @click="isUser ? score('down') : null"
+          @click="score('down')"
         >
           <div
             class="svg-icon"
@@ -357,7 +354,7 @@
         </div>
       </div>
       <approval-footer
-        v-if="task.group.id"
+        v-if="task.group.id && !isOpenTask"
         :task="task"
         :group="group"
         @claimRewards="score('up')"
@@ -978,10 +975,19 @@ export default {
       if (this.isGroupTask && !this.isUser) return this.task.group.managerNotes;
       return this.task.notes;
     },
+    isOpenTask () {
+      if (!this.isGroupTask) return false;
+      if (this.task.group.claimable) return false;
+      if (this.task.group.assignedUsers.length !== 0) return false;
+      return true;
+    },
     showTaskLockIcon () {
-      if (this.isUser || !this.isGroupTask) return false;
-      if (this.task.group.claimedUser === this.user._id) return false;
-      if (this.task.group.assignedUsers.indexOf(this.user._id) !== -1) return false;
+      if (this.isUser) return false;
+      if (this.isGroupTask) {
+        if (this.isOpenTask) return false;
+        if (this.task.group.claimedUser === this.user._id) return false;
+        if (this.task.group.assignedUsers.indexOf(this.user._id) !== -1) return false;
+      }
       return true;
     },
     taskNotScoreable () {
@@ -1059,6 +1065,10 @@ export default {
       setTimeout(() => this.$root.$emit('castEnd', task, 'task', e), 0);
     },
     async score (direction) {
+      if (this.taskNotScoreable) return;
+      if (this.task.type === 'habit') {
+        if (!this.task[direction]) return;
+      }
       if (this.isYesterdaily === true) {
         await this.beforeTaskScore(this.task);
         this.task.completed = !this.task.completed;
