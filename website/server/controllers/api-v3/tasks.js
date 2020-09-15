@@ -693,7 +693,6 @@ api.updateTask = {
     }
 
     setNextDue(task, user);
-    const savedTask = await task.save();
 
     if (group && task.group.id && task.group.assignedUsers.length > 0) {
       const updateCheckListItems = _.remove(sanitizedObj.checklist, checklist => {
@@ -702,13 +701,17 @@ api.updateTask = {
         return false; // Only return changes. Adding and remove are handled differently
       });
 
-      await group.updateTask(savedTask, { updateCheckListItems });
+      await group.updateTask(task, { updateCheckListItems });
 
-      if (task.group.claimable) {
+      if (task.group.claimable && task.group.assignedUsers.length > 0) {
         const assignedUsers = await User.find({ _id: { $in: task.group.assignedUsers } }, '_id tasksOrder').exec();
-        await Promise.all(assignedUsers.map(assignedUser => group.unlinkTask(task, assignedUser)));
+        await Promise.all(assignedUsers.map(assignedUser => group.unlinkTask(
+          task, assignedUser, null, null, false,
+        )));
+        task.group.assignedUsers = [];
       }
     }
+    const savedTask = await task.save();
 
     res.respond(200, savedTask);
 

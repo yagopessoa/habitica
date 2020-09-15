@@ -1596,8 +1596,11 @@ schema.methods.syncTask = async function groupSyncTask (taskToSync, user, assign
 };
 
 schema.methods.unlinkTask = async function groupUnlinkTask (
-  unlinkingTask, user,
-  keep, saveUser = true,
+  unlinkingTask,
+  user,
+  keep,
+  saveUser = true,
+  saveTask = true,
 ) {
   const findQuery = {
     'group.taskId': unlinkingTask._id,
@@ -1629,7 +1632,8 @@ schema.methods.unlinkTask = async function groupUnlinkTask (
       user.markModified('tasksOrder');
     }
 
-    const promises = [unlinkingTask.save()];
+    const promises = [];
+    if (saveTask) promises.push(unlinkingTask.save());
     if (task) {
       promises.push(task.remove());
     }

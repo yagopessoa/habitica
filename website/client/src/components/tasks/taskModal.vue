@@ -1490,6 +1490,7 @@ export default {
         this.task.group.managerNotes = this.managerNotes;
         this.task.claimable = this.claimable;
         this.task.group.claimable = this.claimable;
+        if (this.claimable) this.task.group.assignedUsers = [];
       }
 
       if (this.task.type === 'reward' && this.task.value === '') {
