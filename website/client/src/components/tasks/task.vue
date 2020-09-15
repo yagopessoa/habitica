@@ -969,6 +969,7 @@ export default {
     },
     teamManagerAccess () {
       if (!this.isGroupTask || !this.group) return true;
+      if (!this.group.leader && !this.group.managers) return false;
       return (this.group.leader._id === this.user._id || this.group.managers[this.user._id]);
     },
     displayNotes () {
