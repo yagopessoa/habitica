@@ -218,7 +218,7 @@ TaskSchema.statics.findMultipleByIdOrAlias = async function findByIdOrAlias (
   if (!userId) throw new Error('User identifier is a required argument');
 
   const query = _.cloneDeep(additionalQueries);
-  query.userId = userId;
+  // query.userId = userId;
 
   const ids = [];
   const aliases = [];

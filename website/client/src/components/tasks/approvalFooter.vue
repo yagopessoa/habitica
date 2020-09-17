@@ -146,10 +146,7 @@ export default {
     },
     userIsManager () {
       if (!this.group.leader && !this.group.managers) return false;
-      if (
-        this.group
-        && (this.group.leader.id === this.user._id || this.group.managers[this.user._id])
-      ) return true;
+      if (this.group.leader.id === this.user._id || this.group.managers[this.user._id]) return true;
       return false;
     },
     approvalRequested () {
