@@ -145,6 +145,7 @@ export default {
       return this.$t('taskIsUnassigned');
     },
     userIsManager () {
+      if (!this.group) return false;
       if (!this.group.leader && !this.group.managers) return false;
       if (this.group.leader.id === this.user._id || this.group.managers[this.user._id]) return true;
       return false;

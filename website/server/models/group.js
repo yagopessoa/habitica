@@ -1476,8 +1476,9 @@ schema.methods.updateTask = async function updateTask (taskToSync, options = {})
 
   updateCmd.$set['group.approval.required'] = taskToSync.group.approval.required;
   updateCmd.$set['group.assignedUsers'] = taskToSync.group.assignedUsers;
-  updateCmd.$set['group.sharedCompletion'] = taskToSync.group.sharedCompletion;
+  updateCmd.$set['group.claimable'] = taskToSync.group.claimable;
   updateCmd.$set['group.managerNotes'] = taskToSync.group.managerNotes;
+  updateCmd.$set['group.sharedCompletion'] = taskToSync.group.sharedCompletion;
 
   const taskSchema = Tasks[taskToSync.type];
 

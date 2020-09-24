@@ -74,7 +74,7 @@ async function cronAsync (req, res) {
       return null;
     }
 
-    const teamsLed = await User.teamsLed();
+    const teamsLed = await user.teamsLed();
     let tasksQuery;
 
     if (teamsLed.length > 0) {

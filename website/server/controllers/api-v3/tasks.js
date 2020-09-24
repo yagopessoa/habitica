@@ -694,7 +694,9 @@ api.updateTask = {
 
     setNextDue(task, user);
 
-    if (group && task.group.id && task.group.assignedUsers.length > 0) {
+    if (group && task.group.id
+      && (task.group.assignedUsers.length > 0 || task.group.claimedUser)
+    ) {
       const updateCheckListItems = _.remove(sanitizedObj.checklist, checklist => {
         const indexOld = _.findIndex(oldCheckList, check => check.id === checklist.id);
         if (indexOld !== -1) return checklist.text !== oldCheckList[indexOld].text;
