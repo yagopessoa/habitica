@@ -1047,7 +1047,7 @@ export default {
     },
     isOpenTask () {
       if (!this.isGroupTask) return false;
-      if (this.task.group.claimable) return false;
+      if (this.task.group.claimable || this.task.group.claimedUser) return false;
       if (this.task.group.assignedUsers.length !== 0) return false;
       return true;
     },

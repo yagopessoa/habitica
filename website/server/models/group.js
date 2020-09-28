@@ -30,6 +30,7 @@ import baseModel from '../libs/baseModel';
 import { sendTxn as sendTxnEmail } from '../libs/email'; // eslint-disable-line import/no-cycle
 import { sendNotification as sendPushNotification } from '../libs/pushNotifications'; // eslint-disable-line import/no-cycle
 import { // eslint-disable-line import/no-cycle
+  setNextDue,
   syncableAttrs,
 } from '../libs/taskManager';
 import {
@@ -1591,6 +1592,9 @@ schema.methods.syncTask = async function groupSyncTask (taskToSync, user, assign
   if (!matchingTask.notes) matchingTask.notes = taskToSync.notes;
   // add tag if missing
   if (matchingTask.tags.indexOf(group._id) === -1) matchingTask.tags.push(group._id);
+
+  // set up Daily repeat schedule
+  if (matchingTask.type === 'daily') setNextDue(matchingTask, user);
 
   toSave.push(matchingTask.save(), taskToSync.save(), user.save());
   return Promise.all(toSave);
