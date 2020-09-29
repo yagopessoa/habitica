@@ -367,6 +367,22 @@ async function scoreTask (user, task, direction, req, res) {
     }
   }
 
+  let localTask;
+
+  if (task.group.id && !task.userId) { // Task is being scored from team board
+    if (task.group.claimable && task.group.claimedUser !== user._id) {
+      throw new BadRequest('Task must be claimed before scoring.');
+    }
+    if (task.group.assignedUsers.length > 0 && !task.group.assignedUsers.includes(user._id)) {
+      throw new BadRequest('Task has not been assigned to this user.');
+    }
+    if (task.group.claimable || task.group.assignedUsers.length > 0) {
+    // Task has been copied to user's list, need to find that task for later update
+      localTask = await Tasks.Task.findOne({ userId: user._id, 'group.taskId': task._id });
+      if (!localTask) throw new NotFound('Task not found.');
+    }
+  }
+
   if (task.group.approval.required && !task.group.approval.approved) {
     const fields = requiredGroupFields.concat(' managers');
     const group = await Group.getGroup({ user, groupId: task.group.id, fields });
@@ -461,6 +477,12 @@ async function scoreTask (user, task, direction, req, res) {
   }
 
   setNextDue(task, user);
+
+  if (localTask) {
+    localTask.completed = task.completed;
+    await localTask.save();
+    task._id = localTask._id;
+  }
 
   taskScoredWebhook.send(user, {
     task,
