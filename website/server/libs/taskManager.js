@@ -458,20 +458,20 @@ async function scoreTask (user, task, direction, req, res) {
 
   // If a todo was completed or uncompleted move it in or out of the user.tasksOrder.todos list
   // TODO move to common code?
-  let pullTask = false;
-  let pushTask = false;
+  let pullTask;
+  let pushTask;
   if (task.type === 'todo') {
     if (!wasCompleted && task.completed) {
       // @TODO: mongoose's push and pull should be atomic and help with
       // our concurrency issues. If not, we need to use this update $pull and $push
-      pullTask = true;
+      pullTask = localTask._id || task._id;
       // user.tasksOrder.todos.pull(task._id);
     } else if (
       wasCompleted
       && !task.completed
       && user.tasksOrder.todos.indexOf(task._id) === -1
     ) {
-      pushTask = true;
+      pushTask = localTask._id || task._id;
       // user.tasksOrder.todos.push(task._id);
     }
   }
@@ -481,7 +481,6 @@ async function scoreTask (user, task, direction, req, res) {
   if (localTask) {
     localTask.completed = task.completed;
     await localTask.save();
-    task._id = localTask._id;
   }
 
   taskScoredWebhook.send(user, {
@@ -579,8 +578,8 @@ export async function scoreTasks (user, taskScorings, req, res) {
   const pushIDs = [];
 
   returnDatas.forEach(returnData => {
-    if (returnData.pushTask === true) pushIDs.push(returnData.task._id);
-    if (returnData.pullTask === true) pullIDs.push(returnData.task._id);
+    if (returnData.pushTask) pushIDs.push(returnData.pushTask);
+    if (returnData.pullTask) pullIDs.push(returnData.pullTask);
   });
 
   const moveUpdateObject = {};
