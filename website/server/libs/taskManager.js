@@ -378,7 +378,9 @@ async function scoreTask (user, task, direction, req, res) {
     }
     if (task.group.claimable || task.group.assignedUsers.length > 0) {
     // Task has been copied to user's list, need to find that task for later update
-      localTask = await Tasks.Task.findOne({ userId: user._id, 'group.taskId': task._id });
+      localTask = await Tasks.Task.findOne(
+        { userId: user._id, 'group.taskId': task._id },
+      ).exec();
       if (!localTask) throw new NotFound('Task not found.');
     }
   }
