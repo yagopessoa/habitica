@@ -464,14 +464,14 @@ async function scoreTask (user, task, direction, req, res) {
     if (!wasCompleted && task.completed) {
       // @TODO: mongoose's push and pull should be atomic and help with
       // our concurrency issues. If not, we need to use this update $pull and $push
-      pullTask = localTask._id || task._id;
+      pullTask = localTask ? localTask._id : task._id;
       // user.tasksOrder.todos.pull(task._id);
     } else if (
       wasCompleted
       && !task.completed
       && user.tasksOrder.todos.indexOf(task._id) === -1
     ) {
-      pushTask = localTask._id || task._id;
+      pushTask = localTask ? localTask._id : task._id;
       // user.tasksOrder.todos.push(task._id);
     }
   }
@@ -480,6 +480,7 @@ async function scoreTask (user, task, direction, req, res) {
 
   if (localTask) {
     localTask.completed = task.completed;
+    localTask.value = task.value + delta;
     await localTask.save();
   }
 
