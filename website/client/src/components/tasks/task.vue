@@ -33,8 +33,9 @@
               'habit-control-positive-disabled': !task.up && !showTaskLockIcon,
               'task-not-scoreable': taskNotScoreable,
             }, controlClass.up.inner]"
-            @click="score('up')"
             tabindex="0"
+            @click="score('up')"
+            @keypress.enter="score('up')"
           >
             <div
               v-if="showTaskLockIcon"
@@ -60,8 +61,9 @@
           <div
             class="task-control daily-todo-control"
             :class="controlClass.inner"
-            @click="score(task.completed ? 'down' : 'up' )"
             tabindex="0"
+            @click="score(task.completed ? 'down' : 'up' )"
+            @keypress.enter="score(task.completed ? 'down' : 'up' )"
           >
             <div
               v-if="showTaskLockIcon"
@@ -88,9 +90,9 @@
           <div
             class="task-clickable-area"
             :class="{'task-clickable-area-user': isUser}"
+            tabindex="0"
             @click="edit($event, task)"
             @keypress.enter="edit($event, task)"
-            tabindex="0"
           >
             <div class="d-flex justify-content-between">
               <h3
@@ -131,8 +133,8 @@
                   <div
                     v-if="isUser"
                     class="dropdown-item"
-                    @click="moveToTop"
                     tabindex="0"
+                    @click="moveToTop"
                     @keypress.enter="moveToTop"
                   >
                     <span class="dropdown-icon-item">
@@ -146,8 +148,8 @@
                   <div
                     v-if="isUser"
                     class="dropdown-item"
-                    @click="moveToBottom"
                     tabindex="0"
+                    @click="moveToBottom"
                     @keypress.enter="moveToBottom"
                   >
                     <span class="dropdown-icon-item">
@@ -161,8 +163,8 @@
                   <div
                     v-if="showDelete"
                     class="dropdown-item"
-                    @click="destroy"
                     tabindex="0"
+                    @click="destroy"
                     @keypress.enter="destroy"
                   >
                     <span class="dropdown-icon-item delete-task-item">
@@ -339,8 +341,9 @@
               'habit-control-negative-disabled': !task.down && !showTaskLockIcon,
               'task-not-scoreable': taskNotScoreable,
             }, controlClass.down.inner]"
-            @click="score('down')"
             tabindex="0"
+            @click="score('down')"
+            @keypress.enter="score('down')"
           >
             <div
               v-if="showTaskLockIcon"
@@ -360,8 +363,9 @@
           v-if="task.type === 'reward'"
           class="right-control d-flex align-items-center justify-content-center reward-control"
           :class="controlClass.bg"
-          @click="score('down')"
           tabindex="0"
+          @click="score('down')"
+          @keypress.enter="score('down')"
         >
           <div
             class="svg-icon"
