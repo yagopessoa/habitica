@@ -66,7 +66,7 @@ function grantEndOfTheMonthPerks (user, now) {
   const dateUpdatedMoment = moment(plan.dateUpdated).startOf('month');
   const elapsedMonths = moment(subscriptionEndDate).diff(dateUpdatedMoment, 'months');
 
-  if (elapsedMonths > 0) {
+  if (true) {
     plan.dateUpdated = now;
     // For every month, inc their "consecutive months" counter.
     // Give perks based on consecutive blocks
@@ -77,7 +77,7 @@ function grantEndOfTheMonthPerks (user, now) {
     });
 
     // Award mystery items
-    revealMysteryItems(user, elapsedMonths);
+    revealMysteryItems(user, 1);
 
     // 1 for one-month recurring or gift subscriptions; later set to 3 for 3-month recurring, etc.
     let planMonthsLength = 1;
